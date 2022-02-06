@@ -7,23 +7,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         00009d10  080001d0  080001d0  000101d0  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       00000190  08009ee0  08009ee0  00019ee0  2**2
+  2 .rodata       000001a0  08009ee0  08009ee0  00019ee0  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  0800a070  0800a070  00020070  2**0
+  3 .ARM.extab    00000000  0800a080  0800a080  00020070  2**0
                   CONTENTS
-  4 .ARM          00000008  0800a070  0800a070  0001a070  2**2
+  4 .ARM          00000008  0800a080  0800a080  0001a080  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .preinit_array 00000000  0800a078  0800a078  00020070  2**0
+  5 .preinit_array 00000000  0800a088  0800a088  00020070  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  0800a078  0800a078  0001a078  2**2
+  6 .init_array   00000004  0800a088  0800a088  0001a088  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  7 .fini_array   00000004  0800a07c  0800a07c  0001a07c  2**2
+  7 .fini_array   00000004  0800a08c  0800a08c  0001a08c  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  8 .data         00000070  20000000  0800a080  00020000  2**2
+  8 .data         00000070  20000000  0800a090  00020000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          00000aac  20000070  0800a0f0  00020070  2**2
+  9 .bss          00000aac  20000070  0800a100  00020070  2**2
                   ALLOC
- 10 ._user_heap_stack 00000604  20000b1c  0800a0f0  00020b1c  2**0
+ 10 ._user_heap_stack 00000604  20000b1c  0800a100  00020b1c  2**0
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  00020070  2**0
                   CONTENTS, READONLY
@@ -37,11 +37,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  000292f8  00000000  00000000  000430b8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0001a197  00000000  00000000  0006c3b0  2**0
+ 17 .debug_line   0001a199  00000000  00000000  0006c3b0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000efe38  00000000  00000000  00086547  2**0
+ 18 .debug_str    000efe38  00000000  00000000  00086549  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  0017637f  2**0
+ 19 .comment      00000053  00000000  00000000  00176381  2**0
                   CONTENTS, READONLY
  20 .debug_frame  00004e8c  00000000  00000000  001763d4  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -776,10 +776,10 @@ int main(void)
  80007de:	f000 f911 	bl	8000a04 <MX_SDMMC1_SD_Init>
   MX_FATFS_Init();
  80007e2:	f005 fd45 	bl	8006270 <MX_FATFS_Init>
-  /*
    * TODO:
    *  separate read and write files
    *  comments and file content to English
+   *  remove all warnings - unused status variables can turn on red LED
    */
   FRESULT init = init_file_system();
  80007e6:	f000 f8d7 	bl	8000998 <init_file_system>
@@ -857,7 +857,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	// zapis na kartę sd:
-	f_printf(&SDFile, "Demonstracyjny zapis na kartę SD %d \n", counter++);
+	f_printf(&SDFile, "Demonstracyjny zapis na kartę SD (f_printf) %d \n", counter++);
  800086a:	f8d7 315c 	ldr.w	r3, [r7, #348]	; 0x15c
  800086e:	1c5a      	adds	r2, r3, #1
  8000870:	f8c7 215c 	str.w	r2, [r7, #348]	; 0x15c
@@ -866,7 +866,7 @@ int main(void)
  8000878:	480f      	ldr	r0, [pc, #60]	; (80008b8 <main+0xf8>)
  800087a:	f008 fc35 	bl	80090e8 <f_printf>
 
-	uint16_t bytes_to_write = snprintf(sd_card_save_buff, sd_card_save_buff_size, "Demosntracyjny zapis na karte typ II %d \n", counter);
+	uint16_t bytes_to_write = snprintf(sd_card_save_buff, sd_card_save_buff_size, "Demosntracyjny zapis na karte (f_write) %d \n", counter);
  800087e:	f8b7 114a 	ldrh.w	r1, [r7, #330]	; 0x14a
  8000882:	1d38      	adds	r0, r7, #4
  8000884:	f8d7 315c 	ldr.w	r3, [r7, #348]	; 0x15c
@@ -895,7 +895,7 @@ int main(void)
  80008b6:	e7d8      	b.n	800086a <main+0xaa>
  80008b8:	200006ac 	.word	0x200006ac
  80008bc:	08009ee0 	.word	0x08009ee0
- 80008c0:	08009f08 	.word	0x08009f08
+ 80008c0:	08009f14 	.word	0x08009f14
 
 080008c4 <SystemClock_Config>:
 /**
@@ -1056,8 +1056,8 @@ FRESULT init_file_system(){
  80009b4:	e014      	b.n	80009e0 <init_file_system+0x48>
 	}
 
-	res =  f_open(&SDFile, "TestFile.txt", FA_CREATE_NEW | FA_OPEN_APPEND | FA_WRITE | FA_READ);
- 80009b6:	2237      	movs	r2, #55	; 0x37
+	res =  f_open(&SDFile, "TestFile.txt", FA_OPEN_ALWAYS | FA_OPEN_APPEND | FA_WRITE | FA_READ);
+ 80009b6:	2233      	movs	r2, #51	; 0x33
  80009b8:	490d      	ldr	r1, [pc, #52]	; (80009f0 <init_file_system+0x58>)
  80009ba:	480e      	ldr	r0, [pc, #56]	; (80009f4 <init_file_system+0x5c>)
  80009bc:	f007 fbe6 	bl	800818c <f_open>
@@ -1089,7 +1089,7 @@ FRESULT init_file_system(){
  80009e6:	bd80      	pop	{r7, pc}
  80009e8:	200006a8 	.word	0x200006a8
  80009ec:	200008dc 	.word	0x200008dc
- 80009f0:	08009f34 	.word	0x08009f34
+ 80009f0:	08009f44 	.word	0x08009f44
  80009f4:	200006ac 	.word	0x200006ac
 
 080009f8 <Error_Handler>:
@@ -2360,7 +2360,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  800107c:	20000070 	.word	0x20000070
   ldr r2, =_sidata
- 8001080:	0800a080 	.word	0x0800a080
+ 8001080:	0800a090 	.word	0x0800a090
   ldr r2, =_sbss
  8001084:	20000070 	.word	0x20000070
   ldr r4, =_ebss
@@ -4198,7 +4198,7 @@ static uint32_t DMA_CalcBaseAndBitshift(DMA_HandleTypeDef *hdma)
  80019f8:	4770      	bx	lr
  80019fa:	bf00      	nop
  80019fc:	aaaaaaab 	.word	0xaaaaaaab
- 8001a00:	08009fa0 	.word	0x08009fa0
+ 8001a00:	08009fb0 	.word	0x08009fb0
  8001a04:	fffffc00 	.word	0xfffffc00
 
 08001a08 <DMA_CheckFifoParam>:
@@ -6643,7 +6643,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
  8002846:	bf00      	nop
  8002848:	40023c00 	.word	0x40023c00
  800284c:	40023800 	.word	0x40023800
- 8002850:	08009f88 	.word	0x08009f88
+ 8002850:	08009f98 	.word	0x08009f98
  8002854:	20000000 	.word	0x20000000
  8002858:	20000004 	.word	0x20000004
 
@@ -6935,7 +6935,7 @@ uint32_t HAL_RCC_GetPCLK1Freq(void)
  8002a74:	4618      	mov	r0, r3
  8002a76:	bd80      	pop	{r7, pc}
  8002a78:	40023800 	.word	0x40023800
- 8002a7c:	08009f98 	.word	0x08009f98
+ 8002a7c:	08009fa8 	.word	0x08009fa8
 
 08002a80 <HAL_RCC_GetPCLK2Freq>:
   * @note   Each time PCLK2 changes, this function must be called to update the
@@ -6961,7 +6961,7 @@ uint32_t HAL_RCC_GetPCLK2Freq(void)
  8002a9c:	4618      	mov	r0, r3
  8002a9e:	bd80      	pop	{r7, pc}
  8002aa0:	40023800 	.word	0x40023800
- 8002aa4:	08009f98 	.word	0x08009f98
+ 8002aa4:	08009fa8 	.word	0x08009fa8
 
 08002aa8 <HAL_RCC_NMI_IRQHandler>:
   * @brief This function handles the RCC CSS interrupt request.
@@ -16780,7 +16780,7 @@ void MX_FATFS_Init(void)
  8006284:	bf00      	nop
  8006286:	bd80      	pop	{r7, pc}
  8006288:	200006a8 	.word	0x200006a8
- 800628c:	08009fa8 	.word	0x08009fa8
+ 800628c:	08009fb8 	.word	0x08009fb8
  8006290:	200006a4 	.word	0x200006a4
 
 08006294 <get_fattime>:
@@ -20848,8 +20848,8 @@ FRESULT create_name (	/* FR_OK: successful, FR_INVALID_NAME: could not create */
  80079d6:	46bd      	mov	sp, r7
  80079d8:	bd80      	pop	{r7, pc}
  80079da:	bf00      	nop
- 80079dc:	08009fbc 	.word	0x08009fbc
- 80079e0:	08009f44 	.word	0x08009f44
+ 80079dc:	08009fcc 	.word	0x08009fcc
+ 80079e0:	08009f54 	.word	0x08009f54
 
 080079e4 <follow_path>:
 static
@@ -25108,10 +25108,10 @@ uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path)
  800961e:	4798      	blx	r3
  8009620:	3601      	adds	r6, #1
  8009622:	e7f2      	b.n	800960a <__libc_init_array+0x1e>
- 8009624:	0800a078 	.word	0x0800a078
- 8009628:	0800a078 	.word	0x0800a078
- 800962c:	0800a078 	.word	0x0800a078
- 8009630:	0800a07c 	.word	0x0800a07c
+ 8009624:	0800a088 	.word	0x0800a088
+ 8009628:	0800a088 	.word	0x0800a088
+ 800962c:	0800a088 	.word	0x0800a088
+ 8009630:	0800a08c 	.word	0x0800a08c
 
 08009634 <memset>:
  8009634:	4402      	add	r2, r0
@@ -25446,11 +25446,11 @@ uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path)
  8009948:	f000 f87a 	bl	8009a40 <_printf_i>
  800994c:	e7eb      	b.n	8009926 <_svfiprintf_r+0x1c2>
  800994e:	bf00      	nop
- 8009950:	0800a03c 	.word	0x0800a03c
- 8009954:	0800a046 	.word	0x0800a046
+ 8009950:	0800a04c 	.word	0x0800a04c
+ 8009954:	0800a056 	.word	0x0800a056
  8009958:	00000000 	.word	0x00000000
  800995c:	080096ad 	.word	0x080096ad
- 8009960:	0800a042 	.word	0x0800a042
+ 8009960:	0800a052 	.word	0x0800a052
 
 08009964 <_printf_common>:
  8009964:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -25786,8 +25786,8 @@ uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path)
  8009c7c:	f104 0619 	add.w	r6, r4, #25
  8009c80:	e7f5      	b.n	8009c6e <_printf_i+0x22e>
  8009c82:	bf00      	nop
- 8009c84:	0800a04d 	.word	0x0800a04d
- 8009c88:	0800a05e 	.word	0x0800a05e
+ 8009c84:	0800a05d 	.word	0x0800a05d
+ 8009c88:	0800a06e 	.word	0x0800a06e
 
 08009c8c <memcpy>:
  8009c8c:	440a      	add	r2, r1

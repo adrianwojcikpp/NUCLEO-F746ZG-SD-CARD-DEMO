@@ -101,6 +101,7 @@ int main(void)
    * TODO:
    *  separate read and write files
    *  comments and file content to English
+   *  remove all warnings - unused status variables can turn on red LED
    */
   FRESULT init = init_file_system();
 
@@ -142,9 +143,9 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	// zapis na kartę sd:
-	f_printf(&SDFile, "Demonstracyjny zapis na kartę SD %d \n", counter++);
+	f_printf(&SDFile, "Demonstracyjny zapis na kartę SD (f_printf) %d \n", counter++);
 
-	uint16_t bytes_to_write = snprintf(sd_card_save_buff, sd_card_save_buff_size, "Demosntracyjny zapis na karte typ II %d \n", counter);
+	uint16_t bytes_to_write = snprintf(sd_card_save_buff, sd_card_save_buff_size, "Demosntracyjny zapis na karte (f_write) %d \n", counter);
 	uint16_t number_of_bytes_writen = 0;
 	f_write(&SDFile, sd_card_save_buff, bytes_to_write, &number_of_bytes_writen);
 	f_sync(&SDFile);
@@ -211,7 +212,7 @@ FRESULT init_file_system(){
 		return res;
 	}
 
-	res =  f_open(&SDFile, "TestFile.txt", FA_CREATE_NEW | FA_OPEN_APPEND | FA_WRITE | FA_READ);
+	res =  f_open(&SDFile, "TestFile.txt", FA_OPEN_ALWAYS | FA_OPEN_APPEND | FA_WRITE | FA_READ);
 	if(FR_OK != res){
 		return res;
 	}
