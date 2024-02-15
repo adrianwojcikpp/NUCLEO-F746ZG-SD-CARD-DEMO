@@ -22,8 +22,8 @@
 #include "fatfs.h"
 #include "sdmmc.h"
 #include "usart.h"
-#include "usb_otg.h"
 #include "gpio.h"
+#include "tim.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -54,7 +54,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-FRESULT init_file_system();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,46 +91,36 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
-  MX_USB_OTG_FS_PCD_Init();
+  MX_TIM2_Init();
   MX_DMA_Init();
   MX_SDMMC1_SD_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
 
-  /*
-   * TODO:
-   *  separate read and write files
-   *  comments and file content to English
-   *  remove all warnings - unused status variables can turn on red LED
-   */
-  FRESULT init = init_file_system();
+  // The f_mount function gives work area to the FatFs module.
+  FRESULT res = f_mount(&SDFatFS, SDPath, 0);
 
-  // ustaiwnie wskaźnika zapisu/odczytu na początku pliku
-  FRESULT status_lseek = f_lseek(&SDFile, 0);
+  if(res != FR_OK)
+    Error_Handler();
 
-  // przygotowanie buffora do którego zapiszemy dane
-  const uint32_t str_form_sd_len = 64;
-  char buffer_fom_sd[64] = {0};
+  // The f_open function opens a file.
+  res =  f_open(&SDFile, "LOGFILE.CSV", FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
 
-  // odczyt do '\n' znaku z pliku do buffora o maksymalnej długości str_form_sd_len
-  f_gets(buffer_fom_sd, str_form_sd_len, &SDFile);
+  if(res != FR_OK)
+    Error_Handler();
 
-  // read specific number of bytes alternative.
-  // If the file needs to be read fast, it should be read in large chunk as possible.
-  f_lseek(&SDFile, 0);
-  uint16_t bytes_to_read = 10;
-  uint16_t bytes_read;
-  f_read(&SDFile, buffer_fom_sd, bytes_to_read, &bytes_read);
+  // The f_lseek function moves the file read/write pointer of an open file object
+  res = f_lseek(&SDFile, 0 /* start of the file */);
 
-  //gets the current read/write pointer of a file
-  uint32_t char_in_file = f_tell(&SDFile);
+  if(res != FR_OK)
+    Error_Handler();
 
-  // ustawienie wskaźnika zapisu/odczytu na końcu pliku
-  f_lseek(&SDFile, f_size(&SDFile));
+  // Write CSV file header
+  f_puts("Timestamp, USER button state,\n", &SDFile);
+  f_puts("milliseconds, boolean,\n", &SDFile);
 
-  uint32_t counter = 0;
-  uint16_t sd_card_save_buff_size = 256;
-  char sd_card_save_buff[256];
+  // Start 100 us timer
+  HAL_TIM_Base_Start(&htim2);
 
   /* USER CODE END 2 */
 
@@ -138,19 +128,54 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    // Read USER button state
+    GPIO_PinState USER_Btn_State = HAL_GPIO_ReadPin(USER_Btn_GPIO_Port, USER_Btn_Pin);
+
+    // Read timer register
+    uint32_t Timestamp = __HAL_TIM_GET_COUNTER(&htim2) / 10;
+
+    // Writing to text file with f_write function
+    char write_buffer[32];
+    unsigned int bytes_to_write = snprintf(write_buffer, 32, "%lu", Timestamp /* milliseconds */);
+    unsigned int number_of_bytes_written = 0;
+    f_write(&SDFile, write_buffer, bytes_to_write, &number_of_bytes_written);
+
+    if(number_of_bytes_written != bytes_to_write)
+      Error_Handler();
+
+    // Writing to text file with f_printf function
+    int f_print_status = f_printf(&SDFile, ", %u\n", USER_Btn_State);
+
+    if(f_print_status > 0)
+      number_of_bytes_written += f_print_status;
+
+    // The f_sync function flushes the cached information of a writing file.
+    if(f_sync(&SDFile) != FR_OK)
+      Error_Handler();
+
+    // The f_lseek function moves the file read/write pointer of an open file object
+    res = f_lseek(&SDFile, f_size(&SDFile) - number_of_bytes_written /* last line of the file */);
+
+    // Read last line with f_read function
+    char read_buffer[64];
+    unsigned int bytes_read;
+    f_read(&SDFile, read_buffer, number_of_bytes_written, &bytes_read);
+
+    if(bytes_read != number_of_bytes_written)
+      Error_Handler();
+
+    // Send read bytes over serial port
+    HAL_UART_Transmit(&huart3, (uint8_t*)read_buffer, bytes_read, 100);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-	// zapis na kartę sd:
-	f_printf(&SDFile, "Demonstracyjny zapis na kartę SD (f_printf) %d \n", counter++);
+    // Toggle green LED
+    HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 
-	uint16_t bytes_to_write = snprintf(sd_card_save_buff, sd_card_save_buff_size, "Demosntracyjny zapis na karte (f_write) %d \n", counter);
-	uint16_t number_of_bytes_writen = 0;
-	f_write(&SDFile, sd_card_save_buff, bytes_to_write, &number_of_bytes_writen);
-	f_sync(&SDFile);
-
-	HAL_Delay(1000);
+    // Idle for 1 second
+    HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -205,21 +230,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-FRESULT init_file_system(){
 
-	FRESULT res =  f_mount(&SDFatFS, SDPath, 0);
-	if(FR_OK != res){
-		return res;
-	}
-
-	res =  f_open(&SDFile, "TestFile.txt", FA_OPEN_ALWAYS | FA_OPEN_APPEND | FA_WRITE | FA_READ);
-	if(FR_OK != res){
-		return res;
-	}
-
-	res = f_lseek(&SDFile, f_size(&SDFile));
-	return res;
-}
 /* USER CODE END 4 */
 
 /**
@@ -233,6 +244,8 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
+    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    for(unsigned int i = 0; i < SystemCoreClock / 50; i++);
   }
   /* USER CODE END Error_Handler_Debug */
 }
