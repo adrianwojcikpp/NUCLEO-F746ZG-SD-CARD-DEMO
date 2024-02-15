@@ -116,8 +116,8 @@ int main(void)
     Error_Handler();
 
   // Write CSV file header
-  f_puts("Timestamp, USER button state,\n", &SDFile);
-  f_puts("milliseconds, boolean,\n", &SDFile);
+  f_puts("Timestamp,USER button state\n", &SDFile);
+  f_puts("milliseconds,boolean\n", &SDFile);
 
   // Start 100 us timer
   HAL_TIM_Base_Start(&htim2);
@@ -136,7 +136,7 @@ int main(void)
 
     // Writing to text file with f_write function
     char write_buffer[32];
-    unsigned int bytes_to_write = snprintf(write_buffer, 32, "%lu", Timestamp /* milliseconds */);
+    unsigned int bytes_to_write = snprintf(write_buffer, 32, "%lu,", Timestamp /* milliseconds */);
     unsigned int number_of_bytes_written = 0;
     f_write(&SDFile, write_buffer, bytes_to_write, &number_of_bytes_written);
 
@@ -144,7 +144,7 @@ int main(void)
       Error_Handler();
 
     // Writing to text file with f_printf function
-    int f_print_status = f_printf(&SDFile, ", %u\n", USER_Btn_State);
+    int f_print_status = f_printf(&SDFile, "%u\n", USER_Btn_State);
 
     if(f_print_status > 0)
       number_of_bytes_written += f_print_status;
