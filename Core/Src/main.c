@@ -21,9 +21,9 @@
 #include "dma.h"
 #include "fatfs.h"
 #include "sdmmc.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "tim.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -90,11 +90,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART3_UART_Init();
-  MX_TIM2_Init();
   MX_DMA_Init();
+  MX_USART3_UART_Init();
   MX_SDMMC1_SD_Init();
   MX_FATFS_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   // The f_mount function gives work area to the FatFs module.
@@ -104,7 +104,7 @@ int main(void)
     Error_Handler();
 
   // The f_open function opens a file.
-  res =  f_open(&SDFile, "LOGFILE.CSV", FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+  res = f_open(&SDFile, "LOGFILE.CSV", FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
 
   if(res != FR_OK)
     Error_Handler();
