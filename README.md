@@ -16,10 +16,11 @@ W celu uruchomienia aplikacji, należy:
   + GND - GND
 + Umieścić w [adapterze](https://sklep.msalamon.pl/produkt/czytnik-kart-pamieci-microsd-spi-sdio/) kartę microSD z system plików FAT32.
 + Podłącz zasilanie do NUCLEO i uruchom przykładowy projekt.
-+ Naciśnij kilkukrotnie przycisk **USER** obserwując terminal portu szeregowego. Odłącz zasilanie NUCLEO i sprawdź zawartość karty SD.
++ Naciśnij kilkukrotnie przycisk **USER** obserwując terminal portu szeregowego.  
++ Odłącz zasilanie NUCLEO i sprawdź zawartość karty SD.
 + Uruchom dołączony skrypt Python aby wygenerować wykres z zawrtością pliku.
 
-Na karcie SD powinien powstać plik tekstowy "LOGFILE.CSV", do którego co 1 sekundę zapisany będzie **czas** od resetu wyrażony w milisekundach oraz **stan przycisku** USER (0 lub 1). Po każdym zapisie na kartę następuje odczyt ostatniej linijki pliku .csv i przesłanie jej treści po porcie szeregowym. Błąd w zapisie lub odczycie spowoduje miganie diody czerwonej. Prawidłowe działanie programu sygnalizowane jest miganiem diody zielonej.
+Na karcie SD powinien powstać plik tekstowy "LOGFILE.CSV", do którego co 0.1 sekundy zapisany będzie **czas** od resetu wyrażony w milisekundach oraz **stan przycisku** USER (0 lub 1). Po każdym zapisie na kartę następuje odczyt ostatniej linijki pliku .csv i przesłanie jej treści po porcie szeregowym. Błąd w zapisie lub odczycie spowoduje miganie diody czerwonej. Prawidłowe działanie programu sygnalizowane jest miganiem diody zielonej. Zakończenie logowania sygnalizowane jest miaganiem diody niebieskiej.
 
 **Konfiguracja portu szeregowego:** 115200 bps, 8 bitów danych, 1 bit stopu, brak parzystości. 
 
@@ -42,11 +43,12 @@ To run the application, proceed as follows:
   + GND - GND
 + Place a microSD card with the FAT32 file system in the adapter.
 + Connect power to NUCLEO and run the sample project.
-+ Press the USER button several times while observing the serial port terminal. Disconnect NUCLEO power and check the contents of the SD card.
++ Press the USER button several times while observing the serial port terminal. 
++ Disconnect NUCLEO power and check the contents of the SD card.
 + Run included Python script to plot log file content.
 
 
-A text file "LOGFILE.CSV" should be created on the SD card, in which the **time** since the reset expressed in milliseconds and the **state** of the USER button (0 or 1) will be written every 1 second. After each write to the card, the last line of the .csv file is read and its content is sent via the serial port. An error in writing or reading will cause the red LED to blink. Correct operation of the program is indicated by the green diode flashing.
+A text file "LOGFILE.CSV" should be created on the SD card, in which the **time** since the reset expressed in milliseconds and the **state** of the USER button (0 or 1) will be written every 0.1 second. After each write to the card, the last line of the .csv file is read and its content is sent via the serial port. An error in writing or reading is indicated by the red LED flashing. Correct operation of the program is indicated by the green LED flashing. Logging completed is indicated by the blue LED flashing.
 
 **Serial port configuration**: 115200 bps, 8 data bits, 1 stop bit, no parity.
 

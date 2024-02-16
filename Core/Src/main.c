@@ -156,6 +156,9 @@ int main(void)
     // The f_lseek function moves the file read/write pointer of an open file object
     res = f_lseek(&SDFile, f_size(&SDFile) - number_of_bytes_written /* last line of the file */);
 
+    if(res != FR_OK)
+      Error_Handler();
+
     // Read last line with f_read function
     char read_buffer[64];
     unsigned int bytes_read;
@@ -171,11 +174,30 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+    // File size limited to 4096 bytes
+    if(f_size(&SDFile) + number_of_bytes_written >= 4096)
+    {
+      // The f_close function closes an open file.
+      res = f_close(&SDFile);
+
+      if(res != FR_OK)
+        Error_Handler();
+
+      while(1)
+      {
+        // Toggle green LED
+        HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+        // Idle for 100 millisecond
+        HAL_Delay(100);
+      }
+    }
+
     // Toggle green LED
     HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 
-    // Idle for 1 second
-    HAL_Delay(1000);
+    // Idle for 100 millisecond
+    HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
